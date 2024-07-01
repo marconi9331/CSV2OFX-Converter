@@ -27,7 +27,9 @@ records = read_csv(r"C:\teste.csv", has_header=True, delimiter=";")
 
 for record in records:
     record["VALOR LÍQUIDO"] = round_amount(record["VALOR LÍQUIDO"], 2)    
+    print(f'{record["DATA DE VENCIMENTO"]}, {record["VALOR LÍQUIDO"]}, {record["BANDEIRA"]}')
 
+    
 groups = ofx.gen_groups(records)
 trxns = ofx.gen_trxns(groups)
 cleaned_trxns = ofx.clean_trxns(trxns)
