@@ -163,6 +163,7 @@ cython_debug/
 
 
 #test files
+*.bak
 *.csv
 *.xlsx
 *.xls
