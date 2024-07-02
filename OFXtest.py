@@ -7,30 +7,52 @@ from csv2ofx.ofx import OFX
 from decimal import Decimal
 from operator import itemgetter
 
-Stone_mapping = {
-    #"has_header": True,
-    #"is_split": False,
-    #"currency": "BRL",
-    #"delimiter": ";",
-    "account": itemgetter("BANDEIRA"),
-    "date": itemgetter("DATA DE VENCIMENTO"),
-    "amount": itemgetter("VALOR LÍQUIDO")    
-    }
+Rounded_records = []
 
+Stone_mapping = {
+    "has_header": True,
+    "is_split": False,
+    "bank": "Stone",
+    "currency": "BRL",
+    "delimiter": ";",
+    "account": itemgetter("BANDEIRA"),
+    #"account_id": itemgetter("Field"),
+    "date": itemgetter("DATA DE VENCIMENTO"),
+    #"type": itemgetter("TIPO"),
+    "amount": itemgetter("VALOR LÍQUIDO"),
+    #"balance": itemgetter("Field"),
+    "desc": itemgetter("DESCONTO DE MDR"),
+    "payee": itemgetter("BANDEIRA"),
+    "notes": itemgetter("N° CARTÃO"),
+    #"class": itemgetter("Field"),
+    "id": itemgetter("STONE ID"),
+    #"check_num": itemgetter("Field"),
+}
+
+def value_formatting(value):
+    """
+    This function is used to format the amoounts to replace the comma with a dot.
+    """	
+    return value.replace(",", ".")
 
 def round_amount(amount, decimals):
-    return f'{float(amount.replace(",", ".")):.{decimals}f}'.replace(".", ",")
-
+    """
+    This function is used to round the amount to the number of decimals informed.
+    """
+    return f'{float(value_formatting(amount)):.{decimals}f}'
+    
 #csv_path = input("Please enter the path to the CSV file: ")
 ofx = OFX(Stone_mapping)
 records = read_csv(r"202406_Stone_Recebimentos_parcial_DEBITO.csv", has_header=True, delimiter=";")
 
-#for record in records:
-#    record["VALOR LÍQUIDO"] = round_amount(record["VALOR LÍQUIDO"], 2)    
-#    print(f'{record["DATA DE VENCIMENTO"]}, {record["VALOR LÍQUIDO"]}, {record["BANDEIRA"]}')
+for record in records:
+    record["VALOR LÍQUIDO"] = round_amount(record["VALOR LÍQUIDO"], 2) 
+    record["TIPO"] = record["TIPO"]
+    Rounded_records.append(record)
+    #print(f'{record["DATA DE VENCIMENTO"]}, {record["VALOR LÍQUIDO"]}, {record["BANDEIRA"]}')
 
     
-groups = ofx.gen_groups(records)
+groups = ofx.gen_groups(Rounded_records)
 trxns = ofx.gen_trxns(groups)
 cleaned_trxns = ofx.clean_trxns(trxns)
 data = utils.gen_data(cleaned_trxns)
