@@ -1,7 +1,7 @@
 import csv
 
 # Ask for user path to a CSV
-csv_path = input("Please enter the path to the CSV file: ")
+csv_path = input("Please enter the path to the CSV file: \n>")
 
 mapFormPag = {"Crédito" : {} , "Débito" : {}}
 
