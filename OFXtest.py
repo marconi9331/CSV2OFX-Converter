@@ -7,7 +7,6 @@ from csv2ofx.ofx import OFX
 from decimal import Decimal
 from operator import itemgetter
 
-Rounded_records = []
 
 Stone_mapping = {
     "has_header": True,
@@ -40,19 +39,21 @@ def round_amount(amount, decimals):
     This function is used to round the amount to the number of decimals informed.
     """
     return f'{float(value_formatting(amount)):.{decimals}f}'
+
+def records_fix(records):
+    fixed_records = []
+    for record in records:
+        record["VALOR LÍQUIDO"] = round_amount(record["VALOR LÍQUIDO"], 2) 
+        fixed_records.append(record)
+    return fixed_records
+
     
 #csv_path = input("Please enter the path to the CSV file: ")
 ofx = OFX(Stone_mapping)
 records = read_csv(r"202406_Stone_Recebimentos_parcial_DEBITO.csv", has_header=True, delimiter=";")
 
-for record in records:
-    record["VALOR LÍQUIDO"] = round_amount(record["VALOR LÍQUIDO"], 2) 
-    record["TIPO"] = record["TIPO"]
-    Rounded_records.append(record)
-    #print(f'{record["DATA DE VENCIMENTO"]}, {record["VALOR LÍQUIDO"]}, {record["BANDEIRA"]}')
-
     
-groups = ofx.gen_groups(Rounded_records)
+groups = ofx.gen_groups(records_fix(records))
 trxns = ofx.gen_trxns(groups)
 cleaned_trxns = ofx.clean_trxns(trxns)
 data = utils.gen_data(cleaned_trxns)

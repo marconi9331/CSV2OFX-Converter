@@ -1,10 +1,9 @@
 import csv
 
+mapFormPag = {"Crédito" : {} , "Débito" : {}}
+processed_files = []
 # Ask for user path to a CSV
 csv_path = input("Please enter the path to the CSV file: \n>")
-
-mapFormPag = {"Crédito" : {} , "Débito" : {}}
-
 
 def mapTipos(tipo):
     if tipo.startswith("Crédito"):
@@ -26,5 +25,5 @@ with open(csv_path, mode='r', encoding='utf-8-sig') as file:
         addTransaction(tipo, row.get("BANDEIRA"), row)
 
     for tipo in mapFormPag:
-        for bandeira in mapFormPag[tipo]:
+        for bandeira in mapFormPag[tipo]:            
             print(f"Count: {bandeira} - {tipo} - {len(mapFormPag[tipo][bandeira])}")
