@@ -16,6 +16,15 @@ def addTransaction(tipo, bandeira, row):
         mapFormPag[tipo][bandeira] = []
     mapFormPag[tipo][bandeira].append(row)
 
+def CSV_splitter(csv_path):
+    with open(csv_path, mode='r', encoding='utf-8-sig') as file:
+        reader = csv.DictReader(file, delimiter=';', quotechar='"', doublequote=True)   
+        for row in reader:
+            tipo = mapTipos(row.get("TIPO"))
+            addTransaction(tipo, row.get("BANDEIRA"), row)
+    return mapFormPag
+
+
 # Load this CSV using CSV library
 with open(csv_path, mode='r', encoding='utf-8-sig') as file:
     reader = csv.DictReader(file, delimiter=';', quotechar='"', doublequote=True)   
@@ -23,7 +32,3 @@ with open(csv_path, mode='r', encoding='utf-8-sig') as file:
     for row in reader:
         tipo = mapTipos(row.get("TIPO"))
         addTransaction(tipo, row.get("BANDEIRA"), row)
-
-    for tipo in mapFormPag:
-        for bandeira in mapFormPag[tipo]:            
-            print(f"Count: {bandeira} - {tipo} - {len(mapFormPag[tipo][bandeira])}")
