@@ -3,10 +3,10 @@ import itertools as it
 from meza.io import read_csv, IterStringIO
 from csv2ofx import utils
 from csv2ofx.ofx import OFX
-#from csv2ofx.mappings.stone import mapping
+from CSV_splitter import CSV_splitter as splitter
 from decimal import Decimal
 from operator import itemgetter
-
+from io import StringIO
 
 Stone_mapping = {
     "has_header": True,
@@ -28,6 +28,9 @@ Stone_mapping = {
     #"check_num": itemgetter("Field"),
 }
 
+ofx = OFX(Stone_mapping)
+csv_path = input("Please enter the path to the CSV file: ")
+
 def value_formatting(value):
     """
     This function is used to format the amoounts to replace the comma with a dot.
@@ -47,23 +50,30 @@ def records_fix(records):
         fixed_records.append(record)
     return fixed_records
 
-    
-#csv_path = input("Please enter the path to the CSV file: ")
-ofx = OFX(Stone_mapping)
-records = read_csv(r"202406_Stone_Recebimentos_parcial_DEBITO.csv", has_header=True, delimiter=";")
+def OFX_writer(CSV, tipo, bandeira):
+    records = read_csv(CSV, has_header=True, delimiter=";")
+    records = records_fix(records)
+    groups = ofx.gen_groups(records)
+    trxns = ofx.gen_trxns(groups)
+    cleaned_trxns = ofx.clean_trxns(trxns)
+    data = utils.gen_data(cleaned_trxns)
+    content = it.chain([ofx.header(), ofx.gen_body(data), ofx.footer()])
+
+    with open(rf"{tipo}_{bandeira}.ofx", "wb") as f:
+        for line in IterStringIO(content):
+            f.write(line)   
+
+
+CSVs_list = splitter(csv_path)
+csv_atual = ""
+
+for tipo in CSVs_list:
+    for bandeira in CSVs_list[tipo]:
+        csv_atual = StringIO('\n'.join(CSVs_list[tipo][bandeira]))
+            #print(io.StringIO(str(CSVs_list[tipo][bandeira])).read())
+        
+        print(str(csv_atual))
+        #OFX_writer(CSV_atual, tipo, bandeira)
 
     
-groups = ofx.gen_groups(records_fix(records))
-trxns = ofx.gen_trxns(groups)
-cleaned_trxns = ofx.clean_trxns(trxns)
-data = utils.gen_data(cleaned_trxns)
-content = it.chain([ofx.header(), ofx.gen_body(data), ofx.footer()])
-
-with open(r"teste.ofx", "wb") as f:
-    for line in IterStringIO(content):
-        f.write(line)
-
-for line in IterStringIO(content):
-    print(line)
-
 print("done...")
