@@ -1,11 +1,11 @@
 import itertools as it
-
 from meza.io import read_csv, IterStringIO
 from csv2ofx import utils
 from csv2ofx.ofx import OFX
-from CSV_splitter import CSV_splitter as splitter
+from CSV_splitter import CSV_splitter as splitter, CSV_cleaner as cleaner
 from decimal import Decimal
 from operator import itemgetter
+from math import floor
 from io import StringIO
 
 Stone_mapping = {
@@ -31,11 +31,15 @@ Stone_mapping = {
 ofx = OFX(Stone_mapping)
 csv_path = input("Please enter the path to the CSV file: ")
 
+def truncate(f, n):
+    return floor(f * 10 ** n) / 10 ** n
+
 def value_formatting(value):
     """
     This function is used to format the amoounts to replace the comma with a dot.
     """	
-    return value.replace(",", ".")
+    newvalue = value.replace(".", "")
+    return newvalue.replace(",", ".")
 
 def round_amount(amount, decimals):
     """
@@ -46,7 +50,7 @@ def round_amount(amount, decimals):
 def records_fix(records):
     fixed_records = []
     for record in records:
-        record["VALOR LÍQUIDO"] = round_amount(record["VALOR LÍQUIDO"], 2) 
+        record["VALOR LÍQUIDO"] = str(truncate(float(value_formatting(record["VALOR LÍQUIDO"])), 2)) 
         fixed_records.append(record)
     return fixed_records
 
@@ -65,15 +69,11 @@ def OFX_writer(CSV, tipo, bandeira):
 
 
 CSVs_list = splitter(csv_path)
-csv_atual = ""
 
-for tipo in CSVs_list:
-    for bandeira in CSVs_list[tipo]:
-        csv_atual = StringIO('\n'.join(CSVs_list[tipo][bandeira]))
-            #print(io.StringIO(str(CSVs_list[tipo][bandeira])).read())
-        
-        print(str(csv_atual))
-        #OFX_writer(CSV_atual, tipo, bandeira)
+for csv_tuple in CSVs_list:
+    OFX_writer(csv_tuple[0], csv_tuple[1], csv_tuple[2])
+    cleaner(csv_tuple[0])
+
 
     
 print("done...")
