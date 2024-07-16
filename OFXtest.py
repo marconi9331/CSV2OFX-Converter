@@ -11,25 +11,26 @@ from io import StringIO
 Stone_mapping = {
     "has_header": True,
     "is_split": False,
-    "bank": "Stone",
+    #"bank": "Stone",
     "currency": "BRL",
     "delimiter": ";",
-    "account": itemgetter("BANDEIRA"),
+    #"account": itemgetter("BANDEIRA"),
     #"account_id": itemgetter("Field"),
     "date": itemgetter("DATA DE VENCIMENTO"),
     #"type": itemgetter("TIPO"),
     "amount": itemgetter("VALOR LÍQUIDO"),
     #"balance": itemgetter("Field"),
-    "desc": itemgetter("DESCONTO DE MDR"),
-    "payee": itemgetter("BANDEIRA"),
-    "notes": itemgetter("N° CARTÃO"),
+    "desc": itemgetter("N° CARTÃO"),
+    "payee": itemgetter("BANDEIRA"),    
+    #"notes": itemgetter("N° CARTÃO"),
     #"class": itemgetter("Field"),
     "id": itemgetter("STONE ID"),
-    #"check_num": itemgetter("Field"),
+    "check_num": itemgetter("STONE ID"),
 }
 
 ofx = OFX(Stone_mapping)
-csv_path = input("Please enter the path to the CSV file: ")
+#csv_path = input("Please enter the path to the CSV file: ")
+csv_path = r"C:\repos\CSV2OFX Converter\202406_Stone_Recebimentos.csv"
 
 def truncate(f, n):
     return floor(f * 10 ** n) / 10 ** n
@@ -55,7 +56,7 @@ def records_fix(records):
     return fixed_records
 
 def OFX_writer(CSV, tipo, bandeira):
-    records = read_csv(CSV, has_header=True, delimiter=";")
+    records = read_csv(CSV, has_header=True, dayfirst=True, delimiter=";")
     records = records_fix(records)
     groups = ofx.gen_groups(records)
     trxns = ofx.gen_trxns(groups)
@@ -63,17 +64,18 @@ def OFX_writer(CSV, tipo, bandeira):
     data = utils.gen_data(cleaned_trxns)
     content = it.chain([ofx.header(), ofx.gen_body(data), ofx.footer()])
 
+    #if bandeira == "AmericanExpress":
+    #    print(list(content))
+    
     with open(rf"{tipo}_{bandeira}.ofx", "wb") as f:
-        for line in IterStringIO(content):
+        for line in IterStringIO(content):                
             f.write(line)   
-
 
 CSVs_list = splitter(csv_path)
 
 for csv_tuple in CSVs_list:
     OFX_writer(csv_tuple[0], csv_tuple[1], csv_tuple[2])
-    cleaner(csv_tuple[0])
-
+    #cleaner(csv_tuple[0])
 
     
 print("done...")
